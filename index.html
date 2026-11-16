@@ -1,0 +1,933 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mystic SQL - 40 Tarot Cards</title>
+
+<style>
+:root {
+    --gold: #d5b46b;
+    --gold-light: #f3dda0;
+    --dark: #100d1c;
+    --muted: #aaa0b9;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background:
+        radial-gradient(ellipse at 50% 0%, #38234c 0%, transparent 55%),
+        #100d1c;
+    color: #f8f1e3;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    padding: 35px 18px;
+}
+
+.container { max-width: 1100px; margin: auto; }
+
+header { text-align: center; margin-bottom: 30px; }
+
+.symbol {
+    color: var(--gold);
+    font-size: 35px;
+    margin-bottom: 12px;
+}
+
+h1 {
+    font-family: Georgia, serif;
+    color: var(--gold-light);
+    font-size: clamp(25px, 5vw, 40px);
+    letter-spacing: 3px;
+}
+
+.subtitle {
+    color: var(--muted);
+    margin-top: 10px;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 28px 0;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: #211a2d;
+    border: 1px solid #55412d;
+    border-radius: 10px;
+    padding: 12px 22px;
+    text-align: center;
+    min-width: 125px;
+}
+
+.stat strong {
+    display: block;
+    color: var(--gold);
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.stat span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.progress {
+    background: #352a40;
+    height: 6px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 28px;
+}
+
+.progress div {
+    height: 100%;
+    width: 0;
+    background: var(--gold);
+    transition: .4s;
+}
+
+.section-title {
+    text-align: center;
+    font-family: Georgia, serif;
+    color: var(--gold-light);
+    font-size: 19px;
+    margin-bottom: 8px;
+}
+
+.section-desc {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 25px;
+}
+
+.deck {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 13px;
+    perspective: 1000px;
+}
+
+.tarot {
+    aspect-ratio: 2 / 3.1;
+    min-width: 0;
+    border: 2px solid var(--gold);
+    border-radius: 9px;
+    padding: 4px;
+    background: #24182f;
+    cursor: pointer;
+    transition: .3s;
+    box-shadow: 0 5px 15px #0006;
+}
+
+.tarot:hover:not(.used) {
+    transform: translateY(-9px) rotate(-2deg);
+    box-shadow: 0 12px 25px #0009;
+}
+
+.tarot:disabled { cursor: not-allowed; }
+
+.tarot-inner {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #967644;
+    border-radius: 5px;
+    background:
+        repeating-linear-gradient(45deg,
+        transparent 0 8px, #d5b46b0b 8px 9px),
+        radial-gradient(circle, #453052, #171020);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 2px;
+}
+
+.corner {
+    font-family: Georgia, serif;
+    color: var(--gold);
+    font-size: 8px;
+}
+
+.tarot-symbol {
+    color: var(--gold-light);
+    font-size: clamp(20px, 3vw, 32px);
+    text-shadow: 0 0 15px #e7bd66;
+}
+
+.tarot-label {
+    color: var(--gold);
+    font-family: Georgia, serif;
+    font-size: 8px;
+    letter-spacing: 1px;
+}
+
+.tarot.used {
+    opacity: .3;
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
+.question-area {
+    display: none;
+    margin: 35px auto 0;
+    max-width: 750px;
+    animation: appear .5s ease;
+}
+
+@keyframes appear {
+    from { opacity: 0; transform: translateY(25px) rotateX(-8deg); }
+    to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+.question-card {
+    background: linear-gradient(145deg, #2a2037, #171321);
+    border: 1px solid var(--gold);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 15px 40px #0007;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    display: inline-block;
+    color: var(--gold-light);
+    border: 1px solid #82683e;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+}
+
+.difficulty {
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.mudah { background: #164c37; color: #9ef0bd; }
+.sedang { background: #64471c; color: #ffdb8d; }
+.sulit { background: #692c38; color: #ffb0bd; }
+
+.question-card h2 {
+    color: var(--gold-light);
+    font-family: Georgia, serif;
+    font-size: 23px;
+    margin: 20px 0 17px;
+}
+
+.question-card p {
+    line-height: 1.8;
+    color: #d3c9dc;
+    font-size: 14px;
+}
+
+.hint {
+    margin-top: 20px;
+    padding: 15px;
+    border-left: 3px solid var(--gold);
+    background: #ffffff08;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.answer {
+    display: none;
+    margin-top: 22px;
+    animation: appear .3s ease;
+}
+
+.answer h3 {
+    color: var(--gold);
+    font-family: Georgia, serif;
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+pre {
+    background: #090b12;
+    border: 1px solid #59462f;
+    padding: 20px;
+    border-radius: 8px;
+    color: #9ee6ae;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.note {
+    color: var(--muted) !important;
+    font-size: 12px !important;
+    margin-top: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+button.action {
+    padding: 13px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--gold);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: .2s;
+}
+
+button.action:hover { transform: translateY(-2px); }
+
+.gold-btn { background: var(--gold); color: #201628; }
+.dark-btn { background: transparent; color: var(--gold-light); }
+
+.finished {
+    display: none;
+    text-align: center;
+    padding: 35px 15px;
+    border: 1px solid var(--gold);
+    border-radius: 15px;
+    background: #1b1627;
+}
+
+.finished h2 {
+    font-family: Georgia, serif;
+    color: var(--gold);
+    margin-bottom: 15px;
+}
+
+footer {
+    text-align: center;
+    color: #766c80;
+    font-size: 11px;
+    margin-top: 45px;
+}
+
+@media(max-width: 850px) {
+    .deck { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media(max-width: 550px) {
+    body { padding: 25px 12px; }
+    .deck { grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .question-card { padding: 20px; }
+    .question-card h2 { font-size: 19px; }
+    .actions { flex-direction: column; }
+    button.action { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+    <div class="symbol">✧ ☽ ✧</div>
+    <h1>MYSTIC SQL</h1>
+    <div class="subtitle">THE ARCANA OF DATABASE</div>
+</header>
+
+<div class="stats">
+    <div class="stat">
+        <strong id="total">40</strong>
+        <span>TOTAL CARDS</span>
+    </div>
+    <div class="stat">
+        <strong id="picked">0</strong>
+        <span>CARDS OPENED</span>
+    </div>
+    <div class="stat">
+        <strong id="left">40</strong>
+        <span>CARDS REMAINING</span>
+    </div>
+</div>
+
+<div class="progress"><div id="bar"></div></div>
+
+<h2 class="section-title" id="deckTitle">CHOOSE YOUR DESTINY</h2>
+<p class="section-desc" id="deckDesc">
+    Pilih satu kartu untuk menemukan tantangan SQL-mu.
+</p>
+
+<div class="deck" id="deck"></div>
+
+<div class="question-area" id="questionArea">
+    <div class="question-card">
+
+        <div class="card-top">
+            <span class="tag" id="number">CARD 01</span>
+            <span class="difficulty" id="difficulty">MUDAH</span>
+        </div>
+
+        <span class="tag" id="type">SELECT</span>
+
+        <h2 id="title"></h2>
+        <p id="description"></p>
+
+        <div class="hint">
+            ✧ <strong>YOUR CHALLENGE</strong><br>
+            Tuliskan perintah SQL berdasarkan instruksi di atas.
+            Coba selesaikan sebelum melihat kunci jawaban!
+        </div>
+
+        <div class="answer" id="answer">
+            <h3>✧ THE SQL ANSWER</h3>
+            <pre id="code"></pre>
+            <p class="note" id="note"></p>
+        </div>
+
+        <div class="actions">
+            <button class="action dark-btn" id="answerBtn"
+                    onclick="toggleAnswer()">
+                ◈ Lihat Jawaban
+            </button>
+            <button class="action gold-btn" onclick="backToDeck()">
+                Kembali ke Kartu
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="finished" id="finished">
+    <div class="symbol">✧ ★ ✧</div>
+    <h2>THE JOURNEY IS COMPLETE</h2>
+    <p>Selamat! Kamu telah membuka seluruh 40 kartu tantangan SQL.</p>
+    <br>
+    <button class="action gold-btn" onclick="restart()">
+        Mulai Petualangan Baru
+    </button>
+</div>
+
+<footer>
+    MYSTIC SQL CARDS · LEARN THE LANGUAGE OF DATABASES
+</footer>
+
+</div>
+
+<script>
+
+// ==========================================
+// 40 SOAL SQL
+// ==========================================
+
+const questions = [
+
+    // ======================================
+    // SELECT - MUDAH (7 SOAL)
+    // ======================================
+
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Beginning",
+        desc:"Tampilkan seluruh kolom dan data pelanggan dari tabel customers.",
+        sql:"SELECT * FROM customers;",
+        note:"Gunakan tanda * untuk seluruh kolom."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Product",
+        desc:"Tampilkan ProductName dan Price dari tabel products.",
+        sql:"SELECT ProductName, Price FROM products;",
+        note:"Pilih dua kolom yang diminta."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Traveler",
+        desc:"Tampilkan seluruh pelanggan yang berasal dari Mexico.",
+        sql:"SELECT * FROM customers WHERE Country = 'Mexico';",
+        note:"Gunakan WHERE dan operator =."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Treasure",
+        desc:"Tampilkan nama dan harga produk yang memiliki harga lebih dari 50.",
+        sql:"SELECT ProductName, Price FROM products WHERE Price > 50;",
+        note:"Gunakan operator >."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Employee",
+        desc:"Tampilkan seluruh karyawan yang memiliki FirstName bernilai Laura.",
+        sql:"SELECT * FROM employees WHERE FirstName = 'Laura';",
+        note:"Gunakan kondisi berdasarkan FirstName."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Supplier",
+        desc:"Tampilkan SupplierName dan Country dari tabel suppliers.",
+        sql:"SELECT SupplierName, Country FROM suppliers;",
+        note:"Pilih kolom sesuai instruksi."
+    },
+    {
+        type:"SELECT", difficulty:"Mudah",
+        title:"The Category",
+        desc:"Tampilkan seluruh kategori produk yang tersedia.",
+        sql:"SELECT * FROM categories;",
+        note:"Gunakan SELECT *."
+    },
+
+    // ======================================
+    // SELECT - SEDANG (7 SOAL)
+    // ======================================
+
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Duality",
+        desc:"Tampilkan nama dan kota pelanggan yang berasal dari Germany atau France.",
+        sql:"SELECT CustomerName, City FROM customers WHERE Country = 'Germany' OR Country = 'France';",
+        note:"Gunakan operator OR."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Range",
+        desc:"Tampilkan nama dan harga produk dengan harga antara 20 sampai 50.",
+        sql:"SELECT ProductName, Price FROM products WHERE Price BETWEEN 20 AND 50;",
+        note:"BETWEEN mencakup batas awal dan akhir."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Search",
+        desc:"Tampilkan pelanggan yang nama perusahaannya diawali huruf A.",
+        sql:"SELECT * FROM customers WHERE CustomerName LIKE 'A%';",
+        note:"Gunakan LIKE dan wildcard %."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Three Keys",
+        desc:"Tampilkan nama dan harga produk dengan CategoryID 1, 2, atau 3.",
+        sql:"SELECT ProductName, Price FROM products WHERE CategoryID IN (1, 2, 3);",
+        note:"Gunakan IN."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Contact",
+        desc:"Tampilkan nama dan nomor telepon supplier yang berasal dari negara USA dan kota New Orleans.",
+        sql:"SELECT SupplierName, Phone FROM suppliers WHERE Country = 'USA' AND City = 'New Orleans';",
+        note:"Gunakan AND."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Shipper",
+        desc:"Tampilkan seluruh data pengiriman yang nama ShipperName mengandung kata 'Speedy'.",
+        sql:"SELECT * FROM shippers WHERE ShipperName LIKE '%Speedy%';",
+        note:"Gunakan wildcard % di kedua sisi."
+    },
+    {
+        type:"SELECT", difficulty:"Sedang",
+        title:"The Order",
+        desc:"Tampilkan OrderID, CustomerID, dan EmployeeID untuk pesanan dengan CustomerID 2 atau 5.",
+        sql:"SELECT OrderID, CustomerID, EmployeeID FROM orders WHERE CustomerID IN (2, 5);",
+        note:"Gunakan IN untuk beberapa nilai."
+    },
+
+    // ======================================
+    // SELECT - SULIT (6 SOAL)
+    // ======================================
+
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Oracle",
+        desc:"Tampilkan nama produk dan harga yang berasal dari CategoryID 1 atau 2, tetapi harganya harus di atas 20.",
+        sql:"SELECT ProductName, Price FROM products WHERE (CategoryID = 1 OR CategoryID = 2) AND Price > 20;",
+        note:"Perhatikan penggunaan tanda kurung."
+    },
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Equation",
+        desc:"Tampilkan nama produk dan harga setelah ditambah 10%, gunakan alias HargaBaru. Hanya produk dengan harga di bawah 50.",
+        sql:"SELECT ProductName, Price * 1.10 AS HargaBaru FROM products WHERE Price < 50;",
+        note:"Gunakan operasi perkalian dan alias AS."
+    },
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Calculation",
+        desc:"Tampilkan ProductName dan harga setelah dikurangi 5 dengan alias HargaDiskon. Hanya produk dengan harga antara 10 dan 100.",
+        sql:"SELECT ProductName, Price - 5 AS HargaDiskon FROM products WHERE Price BETWEEN 10 AND 100;",
+        note:"Gunakan pengurangan, alias AS, dan BETWEEN."
+    },
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Final Search",
+        desc:"Tampilkan CustomerName dan City untuk pelanggan yang berada di London atau Madrid dan Country bukan UK.",
+        sql:"SELECT CustomerName, City FROM customers WHERE (City = 'London' OR City = 'Madrid') AND Country <> 'UK';",
+        note:"Gabungkan OR, AND, dan <>."
+    },
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Order Detail",
+        desc:"Tampilkan OrderID, ProductID, dan Quantity untuk data order_details dengan Quantity lebih dari 10 dan ProductID di antara 1 sampai 20.",
+        sql:"SELECT OrderID, ProductID, Quantity FROM order_details WHERE Quantity > 10 AND ProductID BETWEEN 1 AND 20;",
+        note:"Gunakan AND dan BETWEEN."
+    },
+    {
+        type:"SELECT", difficulty:"Sulit",
+        title:"The Secret Formula",
+        desc:"Tampilkan nama produk dan harga setelah dibagi 2 dengan alias HargaSetengah. Hanya produk dengan harga lebih besar dari 30 dan CategoryID bukan 3.",
+        sql:"SELECT ProductName, Price / 2 AS HargaSetengah FROM products WHERE Price > 30 AND CategoryID <> 3;",
+        note:"Gunakan pembagian, alias, dan operator <>."
+    },
+
+    // ======================================
+    // UPDATE - MUDAH (7 SOAL)
+    // ======================================
+
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Transformation",
+        desc:"Ubah City pelanggan dengan CustomerID 1 menjadi Jakarta.",
+        sql:"UPDATE customers SET City = 'Jakarta' WHERE CustomerID = 1;",
+        note:"Gunakan UPDATE, SET, dan WHERE."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Value",
+        desc:"Ubah harga produk dengan ProductID 1 menjadi 25.",
+        sql:"UPDATE products SET Price = 25 WHERE ProductID = 1;",
+        note:"Perhatikan kondisi WHERE."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Messenger",
+        desc:"Ubah nomor telepon supplier dengan SupplierID 1 menjadi 08123456789.",
+        sql:"UPDATE suppliers SET Phone = '08123456789' WHERE SupplierID = 1;",
+        note:"Nilai teks menggunakan tanda petik."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Employee Record",
+        desc:"Ubah nama depan karyawan dengan EmployeeID 1 menjadi Amos.",
+        sql:"UPDATE employees SET FirstName = 'Amos' WHERE EmployeeID = 1;",
+        note:"Gunakan EmployeeID sebagai kondisi."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Category",
+        desc:"Ubah CategoryName kategori dengan CategoryID 1 menjadi Minuman.",
+        sql:"UPDATE categories SET CategoryName = 'Minuman' WHERE CategoryID = 1;",
+        note:"Perhatikan nama kolom CategoryName."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Shipper",
+        desc:"Ubah nama jasa pengiriman dengan ShipperID 1 menjadi Express Delivery.",
+        sql:"UPDATE shippers SET ShipperName = 'Express Delivery' WHERE ShipperID = 1;",
+        note:"Gunakan ShipperID sebagai kondisi."
+    },
+    {
+        type:"UPDATE", difficulty:"Mudah",
+        title:"The Supplier Address",
+        desc:"Ubah City supplier dengan SupplierID 2 menjadi Bandung.",
+        sql:"UPDATE suppliers SET City = 'Bandung' WHERE SupplierID = 2;",
+        note:"Gunakan WHERE untuk membatasi data."
+    },
+
+    // ======================================
+    // UPDATE - SEDANG (7 SOAL)
+    // ======================================
+
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Multiplier",
+        desc:"Naikkan harga seluruh produk sebesar 10 persen.",
+        sql:"UPDATE products SET Price = Price * 1.10;",
+        note:"Gunakan operasi perkalian."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Discount",
+        desc:"Kurangi harga produk sebesar 5 jika CategoryID adalah 1.",
+        sql:"UPDATE products SET Price = Price - 5 WHERE CategoryID = 1;",
+        note:"Gunakan operator pengurangan."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Connection",
+        desc:"Ubah Address pelanggan di London dan UK menjadi Jl. Sudirman No. 10.",
+        sql:"UPDATE customers SET Address = 'Jl. Sudirman No. 10' WHERE City = 'London' AND Country = 'UK';",
+        note:"Gunakan AND."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Supplier Contact",
+        desc:"Ubah nomor telepon seluruh supplier yang berasal dari Germany menjadi 0800000000.",
+        sql:"UPDATE suppliers SET Phone = '0800000000' WHERE Country = 'Germany';",
+        note:"Gunakan WHERE Country."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Category Update",
+        desc:"Ubah Description kategori dengan CategoryID 2 menjadi Produk makanan.",
+        sql:"UPDATE categories SET Description = 'Produk makanan' WHERE CategoryID = 2;",
+        note:"Gunakan kolom Description."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Price Adjustment",
+        desc:"Naikkan harga produk sebesar 15 jika CategoryID adalah 2.",
+        sql:"UPDATE products SET Price = Price + 15 WHERE CategoryID = 2;",
+        note:"Gunakan operator penjumlahan."
+    },
+    {
+        type:"UPDATE", difficulty:"Sedang",
+        title:"The Employee Location",
+        desc:"Ubah Notes karyawan dengan EmployeeID 3 menjadi Karyawan bagian administrasi.",
+        sql:"UPDATE employees SET Notes = 'Karyawan bagian administrasi' WHERE EmployeeID = 3;",
+        note:"Gunakan kondisi EmployeeID."
+    },
+
+    // ======================================
+    // UPDATE - SULIT (6 SOAL)
+    // ======================================
+
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Alchemist",
+        desc:"Naikkan harga produk 20% jika harga awal antara 10 sampai 50 dan CategoryID bukan 1.",
+        sql:"UPDATE products SET Price = Price * 1.20 WHERE Price BETWEEN 10 AND 50 AND CategoryID <> 1;",
+        note:"Gabungkan BETWEEN, AND, dan <>."
+    },
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Balance",
+        desc:"Naikkan harga 15 untuk produk kategori 2 atau 3, tetapi hanya jika harga di bawah 100.",
+        sql:"UPDATE products SET Price = Price + 15 WHERE (CategoryID = 2 OR CategoryID = 3) AND Price < 100;",
+        note:"Perhatikan tanda kurung pada OR."
+    },
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Final Oracle",
+        desc:"Ubah PostalCode menjadi 12345 untuk pelanggan di London atau Paris, tetapi bukan Germany.",
+        sql:"UPDATE customers SET PostalCode = '12345' WHERE (City = 'London' OR City = 'Paris') AND Country <> 'Germany';",
+        note:"Gabungkan OR, AND, dan <>."
+    },
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Double Effect",
+        desc:"Naikkan harga produk sebesar 25% jika harga awal di bawah 100 dan CategoryID adalah 1, 2, atau 3.",
+        sql:"UPDATE products SET Price = Price * 1.25 WHERE Price < 100 AND CategoryID IN (1, 2, 3);",
+        note:"Gabungkan perkalian, IN, dan AND."
+    },
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Precision",
+        desc:"Kurangi harga sebesar 10 untuk produk dengan harga di atas 50 dan di bawah 200, kecuali CategoryID 4.",
+        sql:"UPDATE products SET Price = Price - 10 WHERE Price > 50 AND Price < 200 AND CategoryID <> 4;",
+        note:"Gabungkan beberapa kondisi WHERE."
+    },
+    {
+        type:"UPDATE", difficulty:"Sulit",
+        title:"The Ultimate Transformation",
+        desc:"Ubah Address pelanggan menjadi Jl. Merdeka No. 1 jika City adalah London atau Madrid, dan CustomerID berada di antara 1 sampai 20.",
+        sql:"UPDATE customers SET Address = 'Jl. Merdeka No. 1' WHERE (City = 'London' OR City = 'Madrid') AND CustomerID BETWEEN 1 AND 20;",
+        note:"Gabungkan OR, AND, dan BETWEEN."
+    }
+
+];
+
+
+// ==========================================
+// SISTEM KARTU
+// ==========================================
+
+const symbols = [
+    "☽","✧","♜","✦","♢","☼","♧","✺",
+    "♙","♜","☯","✧","♜","♢","☾","✺",
+    "♙","★","☽","♧","✦","♢","☼","♜",
+    "✧","☯","♙","✺","☾","♧","★","♢",
+    "☽","✦","♜","☼","✧","♙","☯","✺"
+];
+
+let order = [];
+let used = [];
+let selected = null;
+let answerVisible = false;
+
+function shuffle(array) {
+    let result = [...array];
+
+    for(let i = result.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    return result;
+}
+
+function startGame() {
+    order = shuffle(questions.map((_, i) => i));
+    used = [];
+    selected = null;
+
+    document.getElementById("finished").style.display = "none";
+    document.getElementById("questionArea").style.display = "none";
+    document.getElementById("deck").style.display = "grid";
+
+    document.getElementById("deckTitle").textContent =
+        "CHOOSE YOUR DESTINY";
+
+    document.getElementById("deckDesc").textContent =
+        "Pilih satu kartu untuk menemukan tantangan SQL-mu.";
+
+    renderDeck();
+    updateStats();
+}
+
+function renderDeck() {
+    const deck = document.getElementById("deck");
+    deck.innerHTML = "";
+
+    order.forEach((index, position) => {
+
+        const card = document.createElement("button");
+        card.className = "tarot";
+        card.type = "button";
+
+        const isUsed = used.includes(index);
+
+        if(isUsed) {
+            card.classList.add("used");
+            card.disabled = true;
+        }
+
+        card.innerHTML = `
+            <div class="tarot-inner">
+                <span class="corner">✧ XL ✧</span>
+                <span class="tarot-symbol">${symbols[position]}</span>
+                <span class="tarot-label">MYSTIC SQL</span>
+                <span class="corner">✧ ★ ✧</span>
+            </div>
+        `;
+
+        card.addEventListener("click", () => chooseCard(index));
+
+        deck.appendChild(card);
+    });
+}
+
+function chooseCard(index) {
+    if(used.includes(index)) return;
+
+    selected = index;
+    used.push(index);
+    answerVisible = false;
+
+    const q = questions[index];
+
+    document.getElementById("deck").style.display = "none";
+    document.getElementById("questionArea").style.display = "block";
+
+    document.getElementById("deckTitle").textContent =
+        "THE CARD HAS BEEN REVEALED";
+
+    document.getElementById("deckDesc").textContent =
+        "Inilah tantangan SQL yang telah kamu pilih.";
+
+    document.getElementById("number").textContent =
+        "CARD " + String(used.length).padStart(2, "0");
+
+    document.getElementById("type").textContent = q.type;
+    document.getElementById("title").textContent = q.title;
+    document.getElementById("description").textContent = q.desc;
+
+    const difficulty = document.getElementById("difficulty");
+
+    difficulty.textContent = q.difficulty.toUpperCase();
+    difficulty.className = "difficulty " + q.difficulty.toLowerCase();
+
+    document.getElementById("code").textContent = q.sql;
+    document.getElementById("note").textContent =
+        "✧ Catatan: " + q.note;
+
+    document.getElementById("answer").style.display = "none";
+
+    document.getElementById("answerBtn").textContent =
+        "◈ Lihat Jawaban";
+
+    updateStats();
+
+    document.getElementById("questionArea").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+function toggleAnswer() {
+    answerVisible = !answerVisible;
+
+    document.getElementById("answer").style.display =
+        answerVisible ? "block" : "none";
+
+    document.getElementById("answerBtn").textContent =
+        answerVisible ? "Tutup Jawaban" : "◈ Lihat Jawaban";
+}
+
+function backToDeck() {
+    document.getElementById("questionArea").style.display = "none";
+
+    if(used.length === questions.length) {
+
+        document.getElementById("deck").style.display = "none";
+        document.getElementById("finished").style.display = "block";
+
+        document.getElementById("deckTitle").textContent =
+            "JOURNEY COMPLETED";
+
+        document.getElementById("deckDesc").textContent =
+            "Semua kartu telah berhasil dibuka.";
+
+    } else {
+
+        document.getElementById("deck").style.display = "grid";
+
+        document.getElementById("deckTitle").textContent =
+            "CHOOSE ANOTHER CARD";
+
+        document.getElementById("deckDesc").textContent =
+            "Pilih kartu lain untuk melanjutkan petualangan.";
+
+        renderDeck();
+    }
+
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById("total").textContent = questions.length;
+    document.getElementById("picked").textContent = used.length;
+    document.getElementById("left").textContent =
+        questions.length - used.length;
+
+    document.getElementById("bar").style.width =
+        (used.length / questions.length * 100) + "%";
+}
+
+function restart() {
+    startGame();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Jalankan aplikasi
+startGame();
+
+</script>
+</body>
+</html>
